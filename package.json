@@ -1,0 +1,6 @@
+{
+  "name": "homebridge-motion-blinds",
+  "keywords": ["homebridge-plugin"],
+  "main": "index.js",
+  "type": "module"
+}
