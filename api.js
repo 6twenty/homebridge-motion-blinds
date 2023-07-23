@@ -11,7 +11,6 @@ const SELF_ADDRESS = "0.0.0.0"
 const BRIDGE_TYPE = "02000001"
 const DEVICE_TYPE = "10000000"
 
-class Bridge {
 class Bridge extends EventEmitter {
   constructor(api, mac, token) {
     super()
