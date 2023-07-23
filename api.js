@@ -19,6 +19,7 @@ class Bridge extends EventEmitter {
     this.mac = mac
     this.token = token
     this.devices = new Map()
+    this.state = {}
 
     this.setAccessToken()
     this.update().then(() => {
@@ -105,6 +106,7 @@ class Device extends EventEmitter {
 
     this.bridge = bridge
     this.mac = mac
+    this.state = {}
 
     this.update().then(() => {
       this.bridge.api.emit("device-added", this)
