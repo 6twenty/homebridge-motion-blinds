@@ -31,7 +31,7 @@ export default class MotionBlindsAccessory {
       onGet(() => this.getTargetPosition()).
       onSet((value) => this.setTargetPosition(value))
 
-    // API             | HAP
+    // API "operation" | HAP "PositionState"
     // 0: Close/Down   | DECREASING
     // 1: Open/Up      | INCREASING
     // 2: Stop         | STOPPED
