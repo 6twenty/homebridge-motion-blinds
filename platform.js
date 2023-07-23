@@ -38,10 +38,7 @@ export default class MotionBlindsPlatform {
     })
 
     if (existingAccessory) {
-      this.log.info(
-        "Restoring existing accessory from cache:",
-        existingAccessory.displayName
-      )
+      this.log.info("Restoring existing accessory from cache:", existingAccessory.displayName)
 
       new MotionBlindsAccessory(this, existingAccessory, device)
     } else {
