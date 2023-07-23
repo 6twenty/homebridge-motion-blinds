@@ -40,12 +40,24 @@ export default class MotionBlindsAccessory {
       onGet(() => this.getPositionState())
 
     device.on("updated", (changes) => {
-      // When movement stops, ensure the target position is in sync with the
-      // current position
-      if ("operation" in changes && changes.operation[1] === STOPPED) {
+      if ("currentPosition" in changes) {
         service.setCharacteristic(
-          Characteristic.TargetPosition, this.getCurrentPosition()
+          Characteristic.CurrentPosition, this.getCurrentPosition()
         )
+      }
+
+      if ("operation" in changes) {
+        service.setCharacteristic(
+          Characteristic.PositionState, this.getPositionState()
+        )
+
+        // When movement stops, ensure the target position is in sync with the
+        // current position
+        if (value === STOPPED) {
+          service.setCharacteristic(
+            Characteristic.TargetPosition, this.getCurrentPosition()
+          )
+        }
       }
     })
   }
