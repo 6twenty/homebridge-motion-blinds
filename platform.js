@@ -1,6 +1,6 @@
-import { PLUGIN_NAME, PLATFORM_NAME } from "./settings"
-import MotionAPI from "./api"
-import MotionBlindsAccessory from "./accessory"
+import { PLUGIN_NAME, PLATFORM_NAME } from "./settings.js"
+import MotionBlindsAccessory from "./accessory.js"
+import MotionAPI from "./api.js"
 
 export default class MotionBlindsPlatform {
   constructor(log, _config, api) {
