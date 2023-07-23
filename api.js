@@ -1,5 +1,6 @@
 import dgram from "dgram"
 import crypto from "crypto"
+import EventEmitter from "events"
 
 const KEY = "d5d967ca-5d37-4c"
 const BRIDGE_ADDRESS = "192.168.178.22"
@@ -11,14 +12,19 @@ const BRIDGE_TYPE = "02000001"
 const DEVICE_TYPE = "10000000"
 
 class Bridge {
+class Bridge extends EventEmitter {
   constructor(api, mac, token) {
+    super()
+
     this.api = api
     this.mac = mac
     this.token = token
     this.devices = new Map()
 
     this.setAccessToken()
-    this.update()
+    this.update().then(() => {
+      this.api.emit("bridge-added", this)
+    })
   }
 
   update() {
@@ -31,7 +37,20 @@ class Bridge {
   }
 
   setState(state) {
+    const changes = {}
+
+    for (const property of Object.keys(state)) {
+      const oldValue = this.state[property]
+      const newValue = state[property]
+
+      if (oldValue !== newValue) {
+        changes[property] = [oldValue, newValue]
+      }
+    }
+
     this.state = state
+
+    this.emit("updated", changes)
   }
 
   readDevice() {
@@ -81,12 +100,16 @@ class Bridge {
   }
 }
 
-class Device {
+class Device extends EventEmitter {
   constructor(bridge, mac) {
+    super()
+
     this.bridge = bridge
     this.mac = mac
 
-    this.update()
+    this.update().then(() => {
+      this.bridge.api.emit("device-added", this)
+    })
   }
 
   update() {
@@ -94,7 +117,20 @@ class Device {
   }
 
   setState(state) {
+    const changes = {}
+
+    for (const property of Object.keys(state)) {
+      const oldValue = this.state[property]
+      const newValue = state[property]
+
+      if (oldValue !== newValue) {
+        changes[property] = [oldValue, newValue]
+      }
+    }
+
     this.state = state
+
+    this.emit("updated", changes)
   }
 
   readDevice() {
@@ -118,8 +154,10 @@ class Device {
   }
 }
 
-export default class ApiClient {
+export default class ApiClient extends EventEmitter {
   constructor(logger) {
+    super()
+
     this.log = logger || console
     this.bridges = new Map()
     this.currentMessage = null
