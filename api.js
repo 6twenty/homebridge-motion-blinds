@@ -145,7 +145,7 @@ export default class ApiClient {
     // Multicast messages announce changes to the state of each blind
     multicast.on("message", (data, _remote) => {
       const parsedData = JSON.parse(data)
-      const { msgType, mac, token, deviceType, data: state } = parsedData
+      const { msgType, mac, deviceType } = parsedData
 
       this.log.debug(`Multicast message ${msgType} from ${mac}: ${data}`)
 
