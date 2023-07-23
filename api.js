@@ -22,8 +22,12 @@ class Bridge {
   }
 
   update() {
-    this.readDevice()
-    this.getDevices()
+    const promises = [
+      this.readDevice(),
+      this.getDevices()
+    ]
+
+    return Promise.all(promises)
   }
 
   setState(state) {
@@ -31,13 +35,13 @@ class Bridge {
   }
 
   readDevice() {
-    this.send("ReadDevice").then(({ data }) => {
+    return this.send("ReadDevice").then(({ data }) => {
       this.setState(data)
     })
   }
 
   getDevices() {
-    this.send("GetDeviceList").then(({ fwVersion, ProtocolVersion, data }) => {
+    return this.send("GetDeviceList").then(({ fwVersion, ProtocolVersion, data }) => {
       this.fwVersion = fwVersion
       this.ProtocolVersion = ProtocolVersion
 
@@ -86,7 +90,7 @@ class Device {
   }
 
   update() {
-    this.readDevice()
+    return this.readDevice()
   }
 
   setState(state) {
