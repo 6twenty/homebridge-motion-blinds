@@ -11,6 +11,9 @@ export default class MotionBlindsAccessory {
 
     accessory.on("identify", () => {
       this.platform.log(`${accessory.displayName} identified!`)
+
+      // Also trigger an update as a way to force-sync the device state
+      this.device.update()
     })
 
     const Service = platform.api.hap.Service
