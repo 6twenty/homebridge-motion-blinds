@@ -9,6 +9,9 @@ export default class MotionBlindsAccessory {
     this.accessory = accessory
     this.device = device
 
+    // Initial target position is synced to the current position
+    this.targetPosition = this.getCurrentPosition()
+
     accessory.on("identify", () => {
       this.platform.log(`${accessory.displayName} identified!`)
 
