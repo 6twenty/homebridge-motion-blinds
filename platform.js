@@ -14,7 +14,7 @@ export default class MotionBlindsPlatform {
   }
 
   discoverDevices() {
-    const motion = new MotionAPI()
+    const motion = new MotionAPI(this.log)
 
     motion.on("device-added", (device) => {
       this.addDiscoveredDevice(device)
