@@ -5,5 +5,9 @@
   "type": "module",
   "engines": {
     "homebridge": "*"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/6twenty/homebridge-motion-blinds.git"
   }
 }
