@@ -7,6 +7,7 @@
   "engines": {
     "homebridge": "*"
   },
+  "homepage": "https://github.com/6twenty/homebridge-motion-blinds",
   "repository": {
     "type": "git",
     "url": "https://github.com/6twenty/homebridge-motion-blinds.git"
