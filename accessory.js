@@ -95,6 +95,11 @@ export default class MotionBlindsAccessory {
   getPositionState() {
     let value = this.device.state.operation
 
+    // Fallback in case the device state hasn't been set yet
+    if (value == null) {
+      value = STOPPED
+    }
+
     // Operation enum mirrors homebridge except for one additional value
     // (5: "Status query") which is ignored
     if (value === STATUS_QUERY) {
