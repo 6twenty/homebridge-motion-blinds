@@ -1,5 +1,5 @@
 {
-  "pluginAlias": "MotionBlinds",
+  "pluginAlias": "motion-blinds",
   "pluginType": "platform",
   "singular": true,
   "headerDisplay": "Homebridge plugin for Motion blinds",
