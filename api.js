@@ -21,6 +21,9 @@ class Bridge extends EventEmitter {
     this.devices = new Map()
     this.state = {}
 
+    this.update = this.update.bind(this)
+    this.send = this.send.bind(this)
+
     this.setAccessToken()
     this.update().then(() => {
       this.api.emit("bridge-added", this)
@@ -108,6 +111,10 @@ class Device extends EventEmitter {
     this.mac = mac
     this.state = {}
 
+    this.update = this.update.bind(this)
+    this.send = this.send.bind(this)
+    this.writeDevice = this.writeDevice.bind(this)
+
     this.update().then(() => {
       this.bridge.api.emit("device-added", this)
     })
@@ -163,6 +170,8 @@ export default class ApiClient extends EventEmitter {
     this.bridges = new Map()
     this.currentMessage = null
     this.messageQueue = []
+
+    this.queueCall = this.queueCall.bind(this)
 
     // Always listen for multicast messages so that Report and Heartbeat
     // messages can be received at all times
