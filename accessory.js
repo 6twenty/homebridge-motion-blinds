@@ -27,61 +27,69 @@ export default class MotionBlindsAccessory {
 
     service.setCharacteristic(Characteristic.Name, accessory.displayName)
 
-    service.getCharacteristic(Characteristic.CurrentPosition).
-      onGet(() => this.getCurrentPosition())
+    service.getCharacteristic(Characteristic.CurrentPosition).onGet(() => {
+      const value = this.getCurrentPosition()
 
-    service.getCharacteristic(Characteristic.TargetPosition).
-      onGet(() => this.getTargetPosition()).
-      onSet((value) => this.setTargetPosition(value))
+      this.platform.log.debug("Get Characteristic CurrentPosition ->", value)
+
+      return value
+    })
+
+    service.getCharacteristic(Characteristic.TargetPosition).onGet(() => {
+      const value = this.getTargetPosition()
+
+      this.platform.log.debug("Get Characteristic TargetPosition ->", value)
+
+      return value
+    }).onSet((value) => {
+      this.platform.log.debug("Set Characteristic TargetPosition ->", value)
+
+      this.setTargetPosition(value)
+    })
 
     // API "operation" | HAP "PositionState"
     // 0: Close/Down   | DECREASING
     // 1: Open/Up      | INCREASING
     // 2: Stop         | STOPPED
     // 5: Status query | - (treated as STOPPED)
-    service.getCharacteristic(Characteristic.PositionState).
-      onGet(() => this.getPositionState())
+    service.getCharacteristic(Characteristic.PositionState).onGet(() => {
+      const value = this.getPositionState()
+
+      this.platform.log.debug("Get Characteristic PositionState ->", value)
+
+      return value
+    })
 
     device.on("updated", (changes) => {
-      if ("currentPosition" in changes) {
-        service.setCharacteristic(
-          Characteristic.CurrentPosition, this.getCurrentPosition()
-        )
-      }
+      this.platform.log.debug("Device updated ->", device.state, changes)
 
-      if ("operation" in changes) {
-        service.setCharacteristic(
-          Characteristic.PositionState, this.getPositionState()
-        )
+      const currentPosition = this.getCurrentPosition()
+      const positionState = this.getPositionState()
 
-        // When movement stops, ensure the target position is in sync with the
-        // current position
-        if (value === STOPPED) {
-          service.setCharacteristic(
-            Characteristic.TargetPosition, this.getCurrentPosition()
-          )
-        }
+      service.getCharacteristic(Characteristic.CurrentPosition).
+        updateValue(currentPosition)
+
+      service.getCharacteristic(Characteristic.PositionState).
+        updateValue(positionState)
+
+      // When movement is stopped, ensure the target position is in sync with
+      // the current position
+      if (positionState === STOPPED) {
+        service.getCharacteristic(Characteristic.TargetPosition).
+          updateValue(currentPosition)
       }
     })
   }
 
   getCurrentPosition() {
     // Position values are inverted to what homebridge uses
-    const value = 100 - this.device.state.currentPosition
-
-    this.platform.log.debug("Get Characteristic CurrentPosition ->", value)
-
-    return value
+    return 100 - this.device.state.currentPosition
   }
 
   getTargetPosition() {
     // The target position isn't stored on the device so it's just cached
     // locally
-    const value = this.targetPosition
-
-    this.platform.log.debug("Get Characteristic TargetPosition ->", value)
-
-    return value
+    return this.targetPosition
   }
 
   setTargetPosition(value) {
@@ -90,26 +98,22 @@ export default class MotionBlindsAccessory {
 
     this.targetPosition = value
 
-    this.platform.log.debug("Set Characteristic TargetPosition ->", value)
-
     this.device.writeDevice({ targetPosition: value })
   }
 
   getPositionState() {
-    let value = this.device.state.operation
+    const value = this.device.state.operation
 
     // Fallback in case the device state hasn't been set yet
     if (value == null) {
-      value = STOPPED
+      return STOPPED
     }
 
     // Operation enum mirrors homebridge except for one additional value
     // (5: "Status query") which is ignored
     if (value === STATUS_QUERY) {
-      value = STOPPED
+      return STOPPED
     }
-
-    this.platform.log.debug("Get Characteristic PositionState ->", value)
 
     return value
   }
