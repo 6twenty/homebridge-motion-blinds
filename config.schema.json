@@ -1,0 +1,22 @@
+{
+  "pluginAlias": "MotionBlinds",
+  "pluginType": "platform",
+  "singular": true,
+  "headerDisplay": "Homebridge plugin for Motion blinds",
+  "footerDisplay": "",
+  "schema": {
+    "type": "object",
+    "properties": {
+      "name": {
+        "title": "Name",
+        "type": "string",
+        "default": "Motion Blinds",
+        "required": true,
+        "description": "Plugin name as displayed in the homebridge log"
+      }
+    }
+  },
+  "form": [
+    "name"
+  ]
+}
