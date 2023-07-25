@@ -294,7 +294,7 @@ export default class ApiClient extends EventEmitter {
         return close()
       }
 
-      this.log.debug(`Unicast message ${msgType} from ${mac}: ${data}`)
+      this.log.debug(`Unicast message ${msgType} from ${mac}`, parsedData)
 
       callback(parsedData)
 
@@ -308,7 +308,7 @@ export default class ApiClient extends EventEmitter {
       }
     })
 
-    this.log.debug(`Sending ${msgType} to ${mac || "all"}`)
+    this.log.debug(`Sending ${msgType} to ${mac || "all"}`, data)
 
     unicast.send(msg, 0, msg.length, UNICAST_PORT, BRIDGE_ADDRESS)
 
