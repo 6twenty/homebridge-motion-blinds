@@ -65,6 +65,7 @@ export default class MotionBlindsAccessory {
 
   updateValues() {
     const { Service, Characteristic } = this.platform.api.hap
+    const service = this.accessory.getService(Service.WindowCovering)
     const currentPosition = this.getCurrentPosition()
     const positionState = this.getPositionState()
 
