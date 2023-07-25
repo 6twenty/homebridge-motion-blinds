@@ -19,8 +19,7 @@ export default class MotionBlindsAccessory {
       this.device.update()
     })
 
-    const Service = platform.api.hap.Service
-    const Characteristic = platform.api.hap.Characteristic
+    const { Service, Characteristic } = platform.api.hap
 
     const service = accessory.getService(Service.WindowCovering) ||
       accessory.addService(Service.WindowCovering)
@@ -65,6 +64,7 @@ export default class MotionBlindsAccessory {
   }
 
   updateValues() {
+    const { Service, Characteristic } = this.platform.api.hap
     const currentPosition = this.getCurrentPosition()
     const positionState = this.getPositionState()
 
