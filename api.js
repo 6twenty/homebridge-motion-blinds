@@ -226,13 +226,12 @@ export default class ApiClient extends EventEmitter {
     }
   }
 
-  // TODO: check that this contains all state, or just the changed state
   handleReport(parsedData) {
-    const { mac } = parsedData
+    const { mac, data: state } = parsedData
 
     this.bridges.forEach((bridge, _) => {
       if (bridge.devices.has(mac)) {
-        bridge.devices.get(mac).setState(parsedData)
+        bridge.devices.get(mac).setState(state)
       }
     })
   }
