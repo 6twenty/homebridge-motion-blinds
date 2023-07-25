@@ -30,7 +30,7 @@ export default class MotionBlindsAccessory {
     service.getCharacteristic(Characteristic.CurrentPosition).onGet(() => {
       const value = this.getCurrentPosition()
 
-      this.platform.log.debug("Get Characteristic CurrentPosition ->", value)
+      this.platform.log.debug("Get CurrentPosition", accessory.displayName, value)
 
       return value
     })
@@ -38,11 +38,11 @@ export default class MotionBlindsAccessory {
     service.getCharacteristic(Characteristic.TargetPosition).onGet(() => {
       const value = this.getTargetPosition()
 
-      this.platform.log.debug("Get Characteristic TargetPosition ->", value)
+      this.platform.log.debug("Get TargetPosition", accessory.displayName, value)
 
       return value
     }).onSet((value) => {
-      this.platform.log.debug("Set Characteristic TargetPosition ->", value)
+      this.platform.log.debug("Set TargetPosition", accessory.displayName, value)
 
       this.setTargetPosition(value)
     })
@@ -55,13 +55,13 @@ export default class MotionBlindsAccessory {
     service.getCharacteristic(Characteristic.PositionState).onGet(() => {
       const value = this.getPositionState()
 
-      this.platform.log.debug("Get Characteristic PositionState ->", value)
+      this.platform.log.debug("Get PositionState", accessory.displayName, value)
 
       return value
     })
 
     device.on("updated", (changes) => {
-      this.platform.log.debug("Device updated ->", device.state, changes)
+      this.platform.log.debug("Device updated", accessory.displayName, device.state, changes)
 
       const currentPosition = this.getCurrentPosition()
       const positionState = this.getPositionState()
