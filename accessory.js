@@ -30,7 +30,7 @@ export default class MotionBlindsAccessory {
     service.getCharacteristic(Characteristic.CurrentPosition).onGet(() => {
       const value = this.getCurrentPosition()
 
-      this.platform.log.debug("Get CurrentPosition", accessory.displayName, value)
+      this.platform.log.debug("Get Current Position", accessory.displayName, value)
 
       return value
     })
@@ -38,24 +38,19 @@ export default class MotionBlindsAccessory {
     service.getCharacteristic(Characteristic.TargetPosition).onGet(() => {
       const value = this.getTargetPosition()
 
-      this.platform.log.debug("Get TargetPosition", accessory.displayName, value)
+      this.platform.log.debug("Get Target Position", accessory.displayName, value)
 
       return value
     }).onSet((value) => {
-      this.platform.log.debug("Set TargetPosition", accessory.displayName, value)
+      this.platform.log.debug("Set Target Position", accessory.displayName, value)
 
       this.setTargetPosition(value)
     })
 
-    // API "operation" | HAP "PositionState"
-    // 0: Close/Down   | DECREASING
-    // 1: Open/Up      | INCREASING
-    // 2: Stop         | STOPPED
-    // 5: Status query | - (treated as STOPPED)
     service.getCharacteristic(Characteristic.PositionState).onGet(() => {
       const value = this.getPositionState()
 
-      this.platform.log.debug("Get PositionState", accessory.displayName, value)
+      this.platform.log.debug("Get Position State", accessory.displayName, value)
 
       return value
     })
@@ -63,20 +58,26 @@ export default class MotionBlindsAccessory {
     device.on("updated", (changes) => {
       this.platform.log.debug("Device updated", accessory.displayName, device.state, changes)
 
-      const currentPosition = this.getCurrentPosition()
-      const positionState = this.getPositionState()
-
-      service.getCharacteristic(Characteristic.CurrentPosition).
-        updateValue(currentPosition)
-
-      service.getCharacteristic(Characteristic.PositionState).
-        updateValue(positionState)
-
-      // When device state changes, always sync the target position to the
-      // current position
-      service.getCharacteristic(Characteristic.TargetPosition).
-        updateValue(currentPosition)
+      this.updateValues()
     })
+
+    this.updateValues()
+  }
+
+  updateValues() {
+    const currentPosition = this.getCurrentPosition()
+    const positionState = this.getPositionState()
+
+    service.getCharacteristic(Characteristic.CurrentPosition).
+      updateValue(currentPosition)
+
+    service.getCharacteristic(Characteristic.PositionState).
+      updateValue(positionState)
+
+    // When device state changes, always sync the target position to the
+    // current position
+    service.getCharacteristic(Characteristic.TargetPosition).
+      updateValue(currentPosition)
   }
 
   getCurrentPosition() {
@@ -92,15 +93,13 @@ export default class MotionBlindsAccessory {
 
   setTargetPosition(value) {
     // Position values are inverted to what homebridge uses
-    value = 100 - value
-
-    this.targetPosition = value
+    this.targetPosition = 100 - value
 
     if (this.targetPosition !== this.getCurrentPosition()) {
       this.device.ignoreNextReport()
     }
 
-    this.device.writeDevice({ targetPosition: value })
+    this.device.writeDevice({ targetPosition: this.targetPosition })
   }
 
   getPositionState() {
