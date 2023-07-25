@@ -91,12 +91,17 @@ export default class MotionBlindsAccessory {
   }
 
   setTargetPosition(value) {
+    clearTimeout(this.setTargetPositionTimer)
+
     // Position values are inverted to what homebridge uses
     value = 100 - value
 
     this.targetPosition = value
 
-    this.device.writeDevice({ targetPosition: value })
+    // This is debounced as we might get a series of these in quick succession
+    this.setTargetPositionTimer = setTimeout(() => {
+      this.device.writeDevice({ targetPosition: value })
+    }, 250)
   }
 
   getPositionState() {
