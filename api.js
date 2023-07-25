@@ -148,9 +148,10 @@ class Device extends EventEmitter {
   }
 
   writeDevice(data) {
-    return this.send("WriteDevice", { data }).then(({ data }) => {
-      this.setState(data)
-    })
+    // Ignore the WriteDeviceAck response, as it just returns an unchanged state
+    // (even operation does not reflect the write action); instead just wait for
+    // the subsequnt Report that gets sent when the operation stops
+    return this.send("WriteDevice", { data })
   }
 
   send(msgType, options = {}) {

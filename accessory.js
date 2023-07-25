@@ -72,12 +72,10 @@ export default class MotionBlindsAccessory {
       service.getCharacteristic(Characteristic.PositionState).
         updateValue(positionState)
 
-      // When movement is stopped, ensure the target position is in sync with
-      // the current position
-      if (positionState === STOPPED) {
-        service.getCharacteristic(Characteristic.TargetPosition).
-          updateValue(currentPosition)
-      }
+      // When device state changes, always sync the target position to the
+      // current position
+      service.getCharacteristic(Characteristic.TargetPosition).
+        updateValue(currentPosition)
     })
   }
 
