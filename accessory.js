@@ -65,6 +65,35 @@ export default class MotionBlindsAccessory {
 
       const currentPosition = this.getCurrentPosition()
 
+      const setFinalPosition = (position) => {
+        this.targetPosition = position
+        this.positionState = STOPPED
+
+        this.characteristics.TargetPosition.updateValue(this.targetPosition)
+        this.characteristics.PositionState.updateValue(this.positionState)
+      }
+
+      if (this.positionState !== STOPPED) {
+        if (currentPosition === this.targetPosition) {
+          setFinalPosition(currentPosition)
+        } else {
+          // Wait 1s then check if the position is still the same - if so,
+          // consider that the final position even if it doesn't match the
+          // target position
+          setTimeout(() => {
+            this.device.update().then(() => {
+              if (this.positionState !== STOPPED) {
+                if (currentPosition === this.getCurrentPosition()) {
+                  setFinalPosition(currentPosition)
+                } else {
+                  // Device still in motion
+                }
+              }
+            })
+          }, 1000)
+        }
+      }
+
       this.characteristics.CurrentPosition.updateValue(currentPosition)
     })
   }
@@ -94,73 +123,29 @@ export default class MotionBlindsAccessory {
       this.positionState = STOPPED
     }
 
+    this.characteristics.PositionState.updateValue(this.positionState)
+
     this.targetPosition = value
 
     if (this.positionState === STOPPED) {
       return // Nothing to do
     }
 
-    this.awaitPosition().then(() => {
-      this.positionState = STOPPED
-    })
-
     // Position values are inverted to what homebridge uses
     this.device.writeDevice({ targetPosition: 100 - this.targetPosition })
+
+    // Once the device motion stops it'll send a Report message with its new
+    // position (which may also happen while device position is still being
+    // set in the UI); that triggers the "updated" handler which will check if
+    // the device is in its final position or not. If not, it'll wait 1s and
+    // check if the device is in fact still in motion; if not, it'll assume that
+    // it's at its intended final position (even if that isn't the target
+    // position)
   }
 
   getPositionState() {
     // The position state on the device ("operation") isn't trusted as it always
     // returns STOPPED, so the position state is managed manually
     return this.positionState
-  }
-
-  // Polls the current position and wait for it to stop changing
-  awaitPosition() {
-    return new Promise((resolve, _reject) => {
-      let lastKnownPosition = this.getCurrentPosition()
-      let pollTimer
-      let waitTimer
-
-      const poll = () => {
-        pollTimer = setTimeout(() => {
-          this.device.update().then(() => {
-            const currentPosition = this.getCurrentPosition()
-
-            this.platform.log.debug("Polling update", this.accessory.displayName, lastKnownPosition, currentPosition)
-
-            if (lastKnownPosition === currentPosition) {
-              this.platform.log.debug("Polling complete", this.accessory.displayName)
-
-              // Even if the current position isn't what the target position was
-              // set to, assume that this is the intended final position
-              this.targetPosition = currentPosition
-
-              clearTimeout(waitTimer)
-              resolve()
-            } else {
-              lastKnownPosition = currentPosition
-
-              poll()
-            }
-          })
-        }, 500)
-      }
-
-      this.platform.log.debug("Polling started", this.accessory.displayName)
-
-      poll()
-
-      // Only wait for a max of 30 seconds
-      waitTimer = setTimeout(() => {
-        const currentPosition = this.getCurrentPosition()
-
-        this.platform.log.debug("Polling timed out", this.accessory.displayName, currentPosition)
-
-        this.targetPosition = currentPosition
-
-        clearTimeout(pollTimer)
-        resolve()
-      }, 1000 * 30)
-    })
   }
 }
