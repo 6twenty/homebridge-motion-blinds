@@ -63,6 +63,8 @@ export default class MotionBlindsAccessory {
     device.on("updated", (changes) => {
       this.platform.log.debug("Device updated", accessory.displayName, device.state, changes)
 
+      clearTimeout(this.fallbackTimer)
+
       const currentPosition = this.getCurrentPosition()
 
       const setFinalPosition = (position) => {
@@ -80,7 +82,7 @@ export default class MotionBlindsAccessory {
           // Wait 5s then check if the position is still the same - if so,
           // consider that the final position even if it doesn't match the
           // target position
-          setTimeout(() => {
+          this.fallbackTimer = setTimeout(() => {
             this.device.update().then(() => {
               if (this.positionState !== STOPPED) {
                 if (currentPosition === this.getCurrentPosition()) {
