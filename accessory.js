@@ -21,11 +21,6 @@ export default class MotionBlindsAccessory {
 
     const { Service, Characteristic } = platform.api.hap
 
-    accessory.getService(Service.AccessoryInformation).
-      .setCharacteristic(Characteristic.Manufacturer, 'Default-Manufacturer')
-      .setCharacteristic(Characteristic.Model, 'Default-Model')
-      .setCharacteristic(Characteristic.SerialNumber, 'Default-Serial');
-
     const info = accessory.getService(Service.AccessoryInformation) ||
       accessory.addService(Service.AccessoryInformation)
 
