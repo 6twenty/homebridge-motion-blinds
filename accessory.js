@@ -1,7 +1,6 @@
 const CLOSING = 0
 const OPENING = 1
 const STOPPED = 2
-const STATUS_QUERY = 5
 
 export default class MotionBlindsAccessory {
   constructor(platform, accessory, device) {
@@ -11,6 +10,7 @@ export default class MotionBlindsAccessory {
 
     // Initial target position is synced to the current position
     this.targetPosition = this.getCurrentPosition()
+    this.positionState = STOPPED
 
     accessory.on("identify", () => {
       this.platform.log(`${accessory.displayName} identified!`)
@@ -26,7 +26,21 @@ export default class MotionBlindsAccessory {
 
     service.setCharacteristic(Characteristic.Name, accessory.displayName)
 
-    service.getCharacteristic(Characteristic.CurrentPosition).onGet(() => {
+    this.characteristics = {
+      CurrentPosition: service.getCharacteristic(Characteristic.CurrentPosition),
+      TargetPosition: service.getCharacteristic(Characteristic.TargetPosition),
+      PositionState: service.getCharacteristic(Characteristic.PositionState)
+    }
+
+    this.characteristics.PositionState.onGet(() => {
+      const value = this.getPositionState()
+
+      this.platform.log.debug("Get Position State", accessory.displayName, value)
+
+      return value
+    })
+
+    this.characteristics.CurrentPosition.onGet(() => {
       const value = this.getCurrentPosition()
 
       this.platform.log.debug("Get Current Position", accessory.displayName, value)
@@ -34,7 +48,7 @@ export default class MotionBlindsAccessory {
       return value
     })
 
-    service.getCharacteristic(Characteristic.TargetPosition).onGet(() => {
+    this.characteristics.TargetPosition.onGet(() => {
       const value = this.getTargetPosition()
 
       this.platform.log.debug("Get Target Position", accessory.displayName, value)
@@ -46,39 +60,13 @@ export default class MotionBlindsAccessory {
       this.setTargetPosition(value)
     })
 
-    service.getCharacteristic(Characteristic.PositionState).onGet(() => {
-      const value = this.getPositionState()
-
-      this.platform.log.debug("Get Position State", accessory.displayName, value)
-
-      return value
-    })
-
     device.on("updated", (changes) => {
       this.platform.log.debug("Device updated", accessory.displayName, device.state, changes)
 
-      this.updateValues()
+      const currentPosition = this.getCurrentPosition()
+
+      this.characteristics.CurrentPosition.updateValue(currentPosition)
     })
-
-    this.updateValues()
-  }
-
-  updateValues() {
-    const { Service, Characteristic } = this.platform.api.hap
-    const service = this.accessory.getService(Service.WindowCovering)
-    const currentPosition = this.getCurrentPosition()
-    const positionState = this.getPositionState()
-
-    service.getCharacteristic(Characteristic.CurrentPosition).
-      updateValue(currentPosition)
-
-    service.getCharacteristic(Characteristic.PositionState).
-      updateValue(positionState)
-
-    // When device state changes, always sync the target position to the
-    // current position
-    service.getCharacteristic(Characteristic.TargetPosition).
-      updateValue(currentPosition)
   }
 
   getCurrentPosition() {
@@ -93,30 +81,78 @@ export default class MotionBlindsAccessory {
   }
 
   setTargetPosition(value) {
-    // Position values are inverted to what homebridge uses
-    this.targetPosition = 100 - value
+    const currentPosition = this.getCurrentPosition()
 
-    if (this.targetPosition !== this.getCurrentPosition()) {
-      this.device.ignoreNextReport()
+    // Homebridge values:
+    // 0 = fully closed
+    // 100 = fully open
+    if (value > currentPosition) {
+      this.positionState = OPENING
+    } else if (value < currentPosition) {
+      this.positionState = CLOSING
+    } else {
+      this.positionState = STOPPED
     }
 
-    this.device.writeDevice({ targetPosition: this.targetPosition })
+    this.targetPosition = value
+
+    if (this.positionState === STOPPED) {
+      return // Nothing to do
+    }
+
+    this.awaitPosition().then(() => {
+      this.positionState = STOPPED
+    })
+
+    // Position values are inverted to what homebridge uses
+    this.device.writeDevice({ targetPosition: 100 - this.targetPosition })
   }
 
   getPositionState() {
-    const value = this.device.state.operation
+    // The position state on the device ("operation") isn't trusted as it always
+    // returns STOPPED, so the position state is managed manually
+    return this.positionState
+  }
 
-    // Fallback in case the device state hasn't been set yet
-    if (value == null) {
-      return STOPPED
-    }
+  // Polls the current position and wait for it to stop changing
+  awaitPosition() {
+    return new Promise((resolve, _reject) => {
+      let lastKnownPosition = this.getCurrentPosition()
+      let pollTimer
+      let waitTimer
 
-    // Operation enum mirrors homebridge except for one additional value
-    // (5: "Status query") which is ignored
-    if (value === STATUS_QUERY) {
-      return STOPPED
-    }
+      const poll = () => {
+        pollTimer = setTimeout(() => {
+          this.device.update().then(() => {
+            const currentPosition = this.getCurrentPosition()
 
-    return value
+            if (lastKnownPosition === currentPosition) {
+              this.platform.log.debug("Polling complete", accessory.displayName, currentPosition)
+
+              // Even if the current position isn't what the target position was
+              // set to, assume that this is the intended final position
+              this.targetPosition = currentPosition
+
+              clearTimeout(waitTimer)
+              resolve()
+            } else {
+              lastKnownPosition = currentPosition
+
+              poll()
+            }
+          })
+        }, 500)
+      }
+
+      poll()
+
+      // Only wait for a max of 30 seconds
+      waitTimer = setTimeout(() => {
+        this.targetPosition = this.getCurrentPosition()
+
+        clearTimeout(pollTimer)
+        resolve()
+      })
+    })
   }
 }
