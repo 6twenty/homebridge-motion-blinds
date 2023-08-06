@@ -158,7 +158,7 @@ export default class MotionBlindsAccessory {
 
         clearTimeout(pollTimer)
         resolve()
-      })
+      }, 1000 * 30)
     })
   }
 }
