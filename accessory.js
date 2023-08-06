@@ -77,7 +77,7 @@ export default class MotionBlindsAccessory {
         if (currentPosition === this.targetPosition) {
           setFinalPosition(currentPosition)
         } else {
-          // Wait 1s then check if the position is still the same - if so,
+          // Wait 5s then check if the position is still the same - if so,
           // consider that the final position even if it doesn't match the
           // target position
           setTimeout(() => {
@@ -90,7 +90,7 @@ export default class MotionBlindsAccessory {
                 }
               }
             })
-          }, 1000)
+          }, 5000)
         }
       }
 
@@ -137,7 +137,7 @@ export default class MotionBlindsAccessory {
     // Once the device motion stops it'll send a Report message with its new
     // position (which may also happen while device position is still being
     // set in the UI); that triggers the "updated" handler which will check if
-    // the device is in its final position or not. If not, it'll wait 1s and
+    // the device is in its final position or not. If not, it'll wait 5s and
     // check if the device is in fact still in motion; if not, it'll assume that
     // it's at its intended final position (even if that isn't the target
     // position)
