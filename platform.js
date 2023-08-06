@@ -1,4 +1,4 @@
-import { PLUGIN_NAME, PLATFORM_NAME } from "./settings.js"
+import { PLUGIN_VERSION, PLUGIN_NAME, PLATFORM_NAME } from "./settings.js"
 import MotionBlindsAccessory from "./accessory.js"
 import MotionAPI from "./api.js"
 
@@ -7,6 +7,8 @@ export default class MotionBlindsPlatform {
     this.log = log
     this.api = api
     this.accessories = []
+
+    log.debug(`Version: ${PLUGIN_VERSION}`)
 
     api.on("didFinishLaunching", () => {
       this.discoverDevices()
