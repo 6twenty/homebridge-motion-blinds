@@ -148,7 +148,11 @@ export default class MotionBlindsAccessory {
 
       // Only wait for a max of 30 seconds
       waitTimer = setTimeout(() => {
-        this.targetPosition = this.getCurrentPosition()
+        const currentPosition = this.getCurrentPosition()
+
+        this.platform.log.debug("Polling timed out", accessory.displayName, currentPosition)
+
+        this.targetPosition = currentPosition
 
         clearTimeout(pollTimer)
         resolve()
