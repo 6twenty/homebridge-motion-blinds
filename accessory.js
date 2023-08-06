@@ -26,7 +26,7 @@ export default class MotionBlindsAccessory {
 
     info.setCharacteristic(Characteristic.Manufacturer, "Roller Blind")
     info.setCharacteristic(Characteristic.Model, `MAC: ${device.mac}`)
-    info.setCharacteristic(Characteristic.SerialNumber, `Battery: ${device.batteryLevel}`)
+    info.setCharacteristic(Characteristic.SerialNumber, `Battery: ${device.state.batteryLevel}`)
 
     const service = accessory.getService(Service.WindowCovering) ||
       accessory.addService(Service.WindowCovering)
@@ -105,7 +105,7 @@ export default class MotionBlindsAccessory {
       }
 
       this.characteristics.CurrentPosition.updateValue(currentPosition)
-      this.characteristics.SerialNumber.updateValue(`Battery: ${this.device.batteryLevel}`)
+      this.characteristics.SerialNumber.updateValue(`Battery: ${this.device.state.batteryLevel}`)
     })
   }
 
