@@ -1,4 +1,4 @@
-import { version } from "./package.json" assert { type: "json" }
+import packageJson from "./package.json" assert { type: "json" }
 
 /**
  * This is the name of the platform that users will use to register the plugin in the Homebridge config.json
@@ -10,4 +10,4 @@ export const PLATFORM_NAME = "MotionBlinds"
  */
 export const PLUGIN_NAME = "homebridge-motion-blinds"
 
-export const PLUGIN_VERSION = version
+export const PLUGIN_VERSION = packageJson.version
