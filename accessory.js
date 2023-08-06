@@ -21,12 +21,25 @@ export default class MotionBlindsAccessory {
 
     const { Service, Characteristic } = platform.api.hap
 
+    accessory.getService(Service.AccessoryInformation).
+      .setCharacteristic(Characteristic.Manufacturer, 'Default-Manufacturer')
+      .setCharacteristic(Characteristic.Model, 'Default-Model')
+      .setCharacteristic(Characteristic.SerialNumber, 'Default-Serial');
+
+    const info = accessory.getService(Service.AccessoryInformation) ||
+      accessory.addService(Service.AccessoryInformation)
+
+    info.setCharacteristic(Characteristic.Manufacturer, "Roller Blind")
+    info.setCharacteristic(Characteristic.Model, `MAC: ${device.mac}`)
+    info.setCharacteristic(Characteristic.SerialNumber, `Battery: ${device.batteryLevel}`)
+
     const service = accessory.getService(Service.WindowCovering) ||
       accessory.addService(Service.WindowCovering)
 
     service.setCharacteristic(Characteristic.Name, accessory.displayName)
 
     this.characteristics = {
+      SerialNumber: info.getCharacteristic(Characteristic.SerialNumber),
       CurrentPosition: service.getCharacteristic(Characteristic.CurrentPosition),
       TargetPosition: service.getCharacteristic(Characteristic.TargetPosition),
       PositionState: service.getCharacteristic(Characteristic.PositionState)
@@ -97,6 +110,7 @@ export default class MotionBlindsAccessory {
       }
 
       this.characteristics.CurrentPosition.updateValue(currentPosition)
+      this.characteristics.SerialNumber.updateValue(`Battery: ${this.device.batteryLevel}`)
     })
   }
 
