@@ -110,7 +110,6 @@ class Device extends EventEmitter {
     this.bridge = bridge
     this.mac = mac
     this.state = {}
-    this.ignoreReport = false
 
     this.update = this.update.bind(this)
     this.send = this.send.bind(this)
@@ -140,10 +139,6 @@ class Device extends EventEmitter {
     this.state = state
 
     this.emit("updated", changes)
-  }
-
-  ignoreNextReport() {
-    this.ignoreReport = true
   }
 
   readDevice() {
@@ -239,11 +234,7 @@ export default class ApiClient extends EventEmitter {
       if (bridge.devices.has(mac)) {
         const device = bridge.devices.get(mac)
 
-        if (device.ignoreReport) {
-          device.ignoreReport = false
-        } else {
-          device.setState(state)
-        }
+        device.setState(state)
       }
     })
   }
