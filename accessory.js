@@ -127,7 +127,7 @@ export default class MotionBlindsAccessory {
             const currentPosition = this.getCurrentPosition()
 
             if (lastKnownPosition === currentPosition) {
-              this.platform.log.debug("Polling complete", accessory.displayName, currentPosition)
+              this.platform.log.debug("Polling complete", this.accessory.displayName, currentPosition)
 
               // Even if the current position isn't what the target position was
               // set to, assume that this is the intended final position
@@ -144,13 +144,15 @@ export default class MotionBlindsAccessory {
         }, 500)
       }
 
+      this.platform.log.debug("Polling started", this.accessory.displayName, lastKnownPosition)
+
       poll()
 
       // Only wait for a max of 30 seconds
       waitTimer = setTimeout(() => {
         const currentPosition = this.getCurrentPosition()
 
-        this.platform.log.debug("Polling timed out", accessory.displayName, currentPosition)
+        this.platform.log.debug("Polling timed out", this.accessory.displayName, currentPosition)
 
         this.targetPosition = currentPosition
 
