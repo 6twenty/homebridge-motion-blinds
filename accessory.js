@@ -126,8 +126,10 @@ export default class MotionBlindsAccessory {
           this.device.update().then(() => {
             const currentPosition = this.getCurrentPosition()
 
+            this.platform.log.debug("Polling update", this.accessory.displayName, lastKnownPosition, currentPosition)
+
             if (lastKnownPosition === currentPosition) {
-              this.platform.log.debug("Polling complete", this.accessory.displayName, currentPosition)
+              this.platform.log.debug("Polling complete", this.accessory.displayName)
 
               // Even if the current position isn't what the target position was
               // set to, assume that this is the intended final position
@@ -144,7 +146,7 @@ export default class MotionBlindsAccessory {
         }, 500)
       }
 
-      this.platform.log.debug("Polling started", this.accessory.displayName, lastKnownPosition)
+      this.platform.log.debug("Polling started", this.accessory.displayName)
 
       poll()
 
