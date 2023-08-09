@@ -10,7 +10,6 @@ export default class MotionBlindsAccessory {
 
     // Initial target position is synced to the current position
     this.targetPosition = this.getCurrentPosition()
-    this.positionState = STOPPED
 
     accessory.on("identify", () => {
       this.platform.log(`${accessory.displayName} identified!`)
@@ -77,34 +76,30 @@ export default class MotionBlindsAccessory {
 
       const setFinalPosition = (position) => {
         this.targetPosition = position
-        this.positionState = STOPPED
 
         this.characteristics.TargetPosition.updateValue(this.targetPosition)
-        this.characteristics.PositionState.updateValue(this.positionState)
       }
 
-      if (this.positionState !== STOPPED) {
-        if (currentPosition === this.targetPosition) {
-          this.platform.log.debug("Device reached target position", accessory.displayName, this.targetPosition)
-          setFinalPosition(currentPosition)
-        } else {
-          // Wait 5s then check if the position is still the same - if so,
-          // consider that the final position even if it doesn't match the
-          // target position
-          this.fallbackTimer = setTimeout(() => {
-            this.device.update().then(() => {
-              if (this.positionState !== STOPPED) {
-                if (currentPosition === this.getCurrentPosition()) {
-                  this.platform.log.debug("Device no longer in motion", accessory.displayName, currentPosition)
-                  setFinalPosition(currentPosition)
-                } else {
-                  // Device still in motion
-                  this.platform.log.debug("Device still in motion", accessory.displayName)
-                }
-              }
-            })
-          }, 5000)
-        }
+      if (currentPosition === this.targetPosition) {
+        this.platform.log.debug("Device reached target position", accessory.displayName, this.targetPosition)
+        setFinalPosition(currentPosition)
+      } else {
+        // Wait 5s then check if the position is still the same - if so,
+        // consider that the final position even if it doesn't match the
+        // target position
+        this.fallbackTimer = setTimeout(() => {
+          this.device.update().then(() => {
+            const newCurrentPosition = this.getCurrentPosition()
+
+            if (currentPosition === newCurrentPosition) {
+              this.platform.log.debug("Device no longer in motion", accessory.displayName, currentPosition)
+              setFinalPosition(currentPosition)
+            } else {
+              // Device still in motion
+              this.platform.log.debug("Device still in motion", accessory.displayName)
+            }
+          })
+        }, 5000)
       }
 
       this.characteristics.CurrentPosition.updateValue(currentPosition)
@@ -126,22 +121,9 @@ export default class MotionBlindsAccessory {
   setTargetPosition(value) {
     const currentPosition = this.getCurrentPosition()
 
-    // Homebridge values:
-    // 0 = fully closed
-    // 100 = fully open
-    if (value > currentPosition) {
-      this.positionState = OPENING
-    } else if (value < currentPosition) {
-      this.positionState = CLOSING
-    } else {
-      this.positionState = STOPPED
-    }
-
-    this.characteristics.PositionState.updateValue(this.positionState)
-
     this.targetPosition = value
 
-    if (this.positionState === STOPPED) {
+    if (this.targetPosition === currentPosition) {
       return // Nothing to do
     }
 
@@ -158,8 +140,7 @@ export default class MotionBlindsAccessory {
   }
 
   getPositionState() {
-    // The position state on the device ("operation") isn't trusted as it always
-    // returns STOPPED, so the position state is managed manually
-    return this.positionState
+    // Homekit seems to ignore this anyway, so screw it
+    return STOPPED
   }
 }
