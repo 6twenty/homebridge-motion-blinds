@@ -68,8 +68,6 @@ export default class MotionBlindsAccessory {
     })
 
     device.on("updated", (changes) => {
-      this.platform.log.debug("Device updated", accessory.displayName, device.state, changes)
-
       clearTimeout(this.fallbackTimer)
 
       const currentPosition = this.getCurrentPosition()
@@ -80,26 +78,20 @@ export default class MotionBlindsAccessory {
         this.characteristics.TargetPosition.updateValue(this.targetPosition)
       }
 
-      if (currentPosition === this.targetPosition) {
-        this.platform.log.debug("Device reached target position", accessory.displayName, this.targetPosition)
+      this.platform.log.debug("Device updated", accessory.displayName, device.state, changes)
+
+      if (!("currentPosition" in changes)) {
+        // Position hasn't changed - treat this as the final intended position
+        this.platform.log.debug("Device at final position", accessory.displayName, currentPosition)
+        setFinalPosition(currentPosition)
+      } else if (currentPosition === this.targetPosition) {
+        // Position has changed and has reached target
+        this.platform.log.debug("Device reached target position", accessory.displayName, currentPosition)
         setFinalPosition(currentPosition)
       } else {
-        // Wait 5s then check if the position is still the same - if so,
-        // consider that the final position even if it doesn't match the
-        // target position
-        this.fallbackTimer = setTimeout(() => {
-          this.device.update().then(() => {
-            const newCurrentPosition = this.getCurrentPosition()
-
-            if (currentPosition === newCurrentPosition) {
-              this.platform.log.debug("Device no longer in motion", accessory.displayName, currentPosition)
-              setFinalPosition(currentPosition)
-            } else {
-              // Device still in motion
-              this.platform.log.debug("Device still in motion", accessory.displayName)
-            }
-          })
-        }, 5000)
+        // Position has changed but has not reached target; wait 5s then check again
+        this.platform.log.debug("Device in motion", accessory.displayName, currentPosition)
+        this.fallbackTimer = setTimeout(() => this.device.update(), 5000)
       }
 
       this.characteristics.CurrentPosition.updateValue(currentPosition)
