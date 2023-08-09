@@ -76,7 +76,8 @@ export default class MotionBlindsAccessory {
       const currentPosition = this.getCurrentPosition()
 
       const setFinalPosition = (position) => {
-        this.targetPosition = position
+        // Position values are inverted to what homebridge uses
+        this.targetPosition = 100 - position
         this.positionState = STOPPED
 
         this.characteristics.TargetPosition.updateValue(this.targetPosition)
