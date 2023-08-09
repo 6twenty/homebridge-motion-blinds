@@ -76,8 +76,7 @@ export default class MotionBlindsAccessory {
       const currentPosition = this.getCurrentPosition()
 
       const setFinalPosition = (position) => {
-        // Position values are inverted to what homebridge uses
-        this.targetPosition = 100 - position
+        this.targetPosition = position
         this.positionState = STOPPED
 
         this.characteristics.TargetPosition.updateValue(this.targetPosition)
@@ -86,6 +85,7 @@ export default class MotionBlindsAccessory {
 
       if (this.positionState !== STOPPED) {
         if (currentPosition === this.targetPosition) {
+          this.platform.log.debug("Device reached target position", accessory.displayName, this.targetPosition)
           setFinalPosition(currentPosition)
         } else {
           // Wait 5s then check if the position is still the same - if so,
@@ -95,9 +95,11 @@ export default class MotionBlindsAccessory {
             this.device.update().then(() => {
               if (this.positionState !== STOPPED) {
                 if (currentPosition === this.getCurrentPosition()) {
+                  this.platform.log.debug("Device no longer in motion", accessory.displayName, currentPosition)
                   setFinalPosition(currentPosition)
                 } else {
                   // Device still in motion
+                  this.platform.log.debug("Device still in motion", accessory.displayName)
                 }
               }
             })
